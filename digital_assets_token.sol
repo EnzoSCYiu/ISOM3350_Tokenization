@@ -180,13 +180,14 @@ contract DigitalAssetToken is ERC20_interface, Owned {
        public
        onlyOwner
    {
+        assetInfo storage a = assets[assetId];
        (bool _isStakeholder, uint256 s) 
            = isStakeholder(assetId, _stakeholder);
-    //   if (_isStakeholder){
-    //       stakeholders[s] 
-    //           = stakeholders[stakeholders.length - 1];
-    //       stakeholders.pop();
-    //   }
+       if (_isStakeholder){
+           a.stakeholders[s] 
+               = a.stakeholders[stakeholders.length - 1];
+           a.stakeholders.pop();
+       }
    }
 
    /**
@@ -200,7 +201,8 @@ contract DigitalAssetToken is ERC20_interface, Owned {
        view
        returns(uint256)
    {
-       //return balanceOf(_stakeholder) / totalSupply();
+       assetInfo storage a = assets[assetId];
+       return a.balanceOf(_stakeholder) / totalSupply();
    }
 
    /**
@@ -212,14 +214,15 @@ contract DigitalAssetToken is ERC20_interface, Owned {
        public
        onlyOwner
    {
-    //   for (uint256 s = 0; s < stakeholders.length; s += 1){
-    //       address stakeholder = stakeholders[s];
-    //       uint256 revenue 
-    //           = address(this).balance * getShare(stakeholder);
-    //       accumulated = accumulated.sub(revenue);
-    //       revenues[stakeholder] 
-    //           = revenues[stakeholder].add(revenue);
-    //   }
+       assetInfo storage a = assets[assetId];
+       for (uint256 s = 0; s < a.stakeholders.length; s += 1){
+           address stakeholder = a.stakeholders[s];
+           uint256 revenue 
+               = address(this).balance * getShare(stakeholder);
+           a.accumulated = accumulated.sub(revenue);
+           a.revenues[stakeholder] 
+               = revenues[stakeholder].add(revenue);
+       }
    }
 
    /**
@@ -231,9 +234,9 @@ contract DigitalAssetToken is ERC20_interface, Owned {
        public
    {
        
-    //   uint256 revenue = revenues[msg.sender];
-    //   revenues[msg.sender] = 0;
-    //   address payable recipient = msg.sender;
-    //   recipient.transfer(revenue);
+       uint256 revenue = a.revenues[msg.sender];
+       a.revenues[msg.sender] = 0;
+       address payable recipient = msg.sender;
+       recipient.transfer(revenue);
    }
 }
